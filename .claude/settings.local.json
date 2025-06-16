@@ -1,0 +1,16 @@
+{
+  "enabledMcpjsonServers": [
+    "puppeteer",
+    "brave-search",
+    "upstash",
+    "browsermcp",
+    "github",
+    "supabase",
+    "memory",
+    "stagehand",
+    "browserbase",
+    "bright-data",
+    "cloudflare-observability",
+    "cloudflare-bindings"
+  ]
+}

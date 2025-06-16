@@ -1,0 +1,83 @@
+name: Test Database Migrations
+
+on:
+  push:
+    branches: [ main, develop ]
+    paths:
+      - 'migrations/**'
+      - '.github/workflows/test-migrations.yml'
+  pull_request:
+    branches: [ main, develop ]
+    paths:
+      - 'migrations/**'
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    
+    services:
+      postgres:
+        image: postgis/postgis:15-3.3
+        env:
+          POSTGRES_USER: postgres
+          POSTGRES_PASSWORD: postgres
+          POSTGRES_DB: vdf_test
+        options: >-
+          --health-cmd pg_isready
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+        ports:
+          - 5432:5432
+
+    steps:
+    - uses: actions/checkout@v3
+    
+    - name: Set up environment
+      run: |
+        echo "DATABASE_URL=postgresql://postgres:postgres@localhost:5432/vdf_test" >> $GITHUB_ENV
+    
+    - name: Run Module 1 migrations
+      run: |
+        for file in migrations/001-user-content-infrastructure/*.sql; do
+          if [[ ! "$file" =~ test_.*\.sql$ ]]; then
+            echo "Running $file"
+            psql $DATABASE_URL -f "$file"
+          fi
+        done
+    
+    - name: Test Module 1
+      run: |
+        psql $DATABASE_URL -f migrations/001-user-content-infrastructure/test_module_1.sql
+    
+    - name: Run Module 3 migrations
+      run: |
+        for file in migrations/003-geographical-context/*.sql; do
+          if [[ ! "$file" =~ test_.*\.sql$ ]]; then
+            echo "Running $file"
+            psql $DATABASE_URL -f "$file"
+          fi
+        done
+    
+    - name: Test Module 3
+      run: |
+        psql $DATABASE_URL -f migrations/003-geographical-context/test_module_3.sql
+    
+    - name: Run Module 2 migrations
+      run: |
+        for file in migrations/002-core-trail-hierarchy/*.sql; do
+          if [[ ! "$file" =~ test_.*\.sql$ ]]; then
+            echo "Running $file"
+            psql $DATABASE_URL -f "$file"
+          fi
+        done
+    
+    - name: Test Module 2
+      run: |
+        psql $DATABASE_URL -f migrations/002-core-trail-hierarchy/test_module_2.sql
+    
+    - name: Check for migration errors
+      if: failure()
+      run: |
+        echo "Migration tests failed. Check the logs above for details."
+        exit 1
