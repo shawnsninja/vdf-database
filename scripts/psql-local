@@ -1,0 +1,21 @@
+#!/usr/bin/env bash
+# Run psql against the project-local DATABASE_URL with safe defaults.
+# Usage examples:
+#   scripts/psql-local -c "select version();"
+#   scripts/psql-local -f migrations/004-waypoint-details/002_waypoint_categories_master_seed.sql
+
+PROJECT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
+# shellcheck source=/dev/null
+set -o allexport
+[ -f "$PROJECT_DIR/.env.local" ] && . "$PROJECT_DIR/.env.local"
+[ -f "$PROJECT_DIR/.env" ] && . "$PROJECT_DIR/.env"
+set +o allexport
+
+if [ -z "$DATABASE_URL" ]; then
+  echo "Error: DATABASE_URL is not set. Create .env.local with DATABASE_URL=... or define it in .env." >&2
+  exit 1
+fi
+
+# Use a safe per-session timeout (works even behind PgBouncer)
+TIMEOUT_SECONDS="${PSQL_DEFAULT_TIMEOUT_SECONDS:-10}"
+PAGER=cat exec psql -X -v ON_ERROR_STOP=1 -P pager=off "$DATABASE_URL" -c "SET statement_timeout='${TIMEOUT_SECONDS}s';" "$@"
