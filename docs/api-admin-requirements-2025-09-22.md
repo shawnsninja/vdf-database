@@ -5,12 +5,18 @@
 - Importer dry-run/apply succeed locally (most recent pass 2025-09-24T00-02Z: `out/logs/importer_2025-09-24T000842Z_dry.log`, `out/logs/importer_2025-09-24T002554Z_apply.log`, QA `out/qa/importer_2025-09-24T002700Z.md`). Staging apply is still blocked pending real service-role credentials; see earlier failures `out/logs/importer_2025-09-22T211015Z_dry.log`, `out/logs/importer_2025-09-22T211038Z_apply.log`, and `out/qa/importer_2025-09-22T211015Z.md`.
 - Module 7–9 specs (versions 2.2 / 1.2 / 1.0) already cite these artefacts; update after the next importer run or schema change.
 - REST contract exported to `docs/api/openapi-v1.yaml` on 2025-09-23.
-- Latest EXPLAIN ANALYZE snapshots (2025-09-24T11:56Z) saved under:
+- Latest EXPLAIN ANALYZE snapshots (local, 2025-09-24T11:56Z):
   - `out/logs/explain_curated_itineraries_list_2025-09-24T115628Z.txt`
   - `out/logs/explain_curated_itinerary_detail_2025-09-24T115628Z.txt`
   - `out/logs/explain_curated_itinerary_segments_2025-09-24T115628Z.txt`
   - `out/logs/explain_published_articles_2025-09-24T115628Z.txt`
-- QA note for this run: `out/qa/importer_2025-09-24T004906Z.md`.
+  - QA: `out/qa/importer_2025-09-24T004906Z.md`
+- Latest EXPLAIN ANALYZE snapshots (staging, 2025-09-24T17:36Z):
+  - `out/logs/explain_curated_itineraries_list_2025-09-24T173617Z_staging.txt`
+  - `out/logs/explain_curated_itinerary_detail_2025-09-24T173617Z_staging.txt`
+  - `out/logs/explain_curated_itinerary_segments_2025-09-24T173617Z_staging.txt`
+  - `out/logs/explain_published_articles_2025-09-24T173617Z_staging.txt`
+  - QA: `out/qa/importer_2025-09-24T173617Z_staging.md`
 
 ## OpenAPI 3.1 Draft (public + admin)
 ```yaml
@@ -229,13 +235,17 @@ type Mutation {
 
 ## Required Database Views & Materializations
 - `public.view_curated_itineraries_list` now surfaces `translation_status_map` via `public.build_translation_status_map(...)` alongside the existing metadata. Still add/verify covering index on `(content_status_code, published_at DESC)`.
-  - Latest EXPLAIN (2025-09-24T11:56Z): Planning 6.172 ms; Execution 0.335 ms.
+  - Latest EXPLAIN (local 2025-09-24T11:56Z): Planning 6.172 ms; Execution 0.335 ms.
+  - Latest EXPLAIN (staging 2025-09-24T17:36Z): Planning 43.973 ms; Execution 1.304 ms.
 - `public.view_curated_itinerary_detail` now includes `translation_status_map`; ensure JSON aggregations for `highlights`, `media`, `seo`. Consider materializing if EXPLAIN exceeds 150 ms.
-  - Latest EXPLAIN (2025-09-24T11:56Z): Planning 2.261 ms; Execution 0.198 ms.
+  - Latest EXPLAIN (local 2025-09-24T11:56Z): Planning 2.261 ms; Execution 0.198 ms.
+  - Latest EXPLAIN (staging 2025-09-24T17:36Z): Planning 6.504 ms; Execution 0.243 ms.
 - `public.view_curated_itinerary_segments` exposes importer-aligned data plus `translation_status_map`. Index underlying `curated_itinerary_segments` on `(curated_itinerary_id, day_number)` and `(segment_id)`.
-  - Latest EXPLAIN (2025-09-24T11:56Z): Planning 4.087 ms; Execution 0.151 ms.
+  - Latest EXPLAIN (local 2025-09-24T11:56Z): Planning 4.087 ms; Execution 0.151 ms.
+  - Latest EXPLAIN (staging 2025-09-24T17:36Z): Planning 8.558 ms; Execution 0.227 ms.
 - `public.published_articles_view` now returns `translation_status_map` using `public.build_translation_status_map('articles', id::text)`.
-  - Latest EXPLAIN (2025-09-24T11:56Z): Planning 3.728 ms; Execution 0.153 ms (measured on `public.view_published_articles`).
+  - Latest EXPLAIN (local 2025-09-24T11:56Z): Planning 3.728 ms; Execution 0.153 ms (measured on `public.view_published_articles`).
+  - Latest EXPLAIN (staging 2025-09-24T17:36Z): Planning 18.865 ms; Execution 0.888 ms.
 - `public.segment_detail_view` (new) → join `segments`, `segment_waypoints`, `segment_nearby_options`, `segment_sources`, `waypoint_sources`, `ingestion_runs` for API consumption. Index `segment_waypoints(segment_id, sequence)` (already PK) plus btree on `segment_sources(segment_id, is_primary)`.
 
 ## Index Requirements & Performance Budgets

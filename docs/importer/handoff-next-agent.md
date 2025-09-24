@@ -114,3 +114,18 @@ LIMIT 10;
   - `out/logs/explain_curated_itinerary_segments_2025-09-24T115628Z.txt` → Planning 4.087 ms, Execution 0.151 ms
   - `out/logs/explain_published_articles_2025-09-24T115628Z.txt` → Planning 3.728 ms, Execution 0.153 ms
 - Note on perceived stall: a prior `psql` run showed `Cancel request sent` (user interrupt) and `WalSenderWaitForWal` from Supabase’s local Logflare; both expected and not performance issues.
+
+### 2025-09-24T17:36Z Staging Update
+- Configured project-local REMOTE_DATABASE_URL in `.env.local` (pooler): `aws-0-us-east-1.pooler.supabase.com:6543` with username `postgres.<project_ref>`.
+- Verified remote connectivity and applied required seeds on staging:
+  - `migrations/004-waypoint-details/002_waypoint_categories_master_seed.sql`
+  - `migrations/004-waypoint-details/006_content_statuses_master_seed.sql`
+- Importer run (staging):
+  - Dry-run and `--apply` succeeded for stage `badia-prataglia` (segments=3, anchors=4, waypoints=1); ingestion_run id=1
+  - QA note: `out/qa/importer_2025-09-24T173617Z_staging.md`
+- EXPLAIN ANALYZE (staging, 10s timeout guard):
+  - `out/logs/explain_curated_itineraries_list_2025-09-24T173617Z_staging.txt` → Planning 43.973 ms, Execution 1.304 ms
+  - `out/logs/explain_curated_itinerary_detail_2025-09-24T173617Z_staging.txt` → Planning 6.504 ms, Execution 0.243 ms
+  - `out/logs/explain_curated_itinerary_segments_2025-09-24T173617Z_staging.txt` → Planning 8.558 ms, Execution 0.227 ms
+  - `out/logs/explain_published_articles_2025-09-24T173617Z_staging.txt` → Planning 18.865 ms, Execution 0.888 ms
+- Note: Direct host `db.<ref>.supabase.co:5432` did not resolve for this project; pooler endpoint works and is recommended.
