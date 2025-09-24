@@ -23,14 +23,15 @@
 
 ## Remaining Issues / Next Steps
 1. ✅ **Documentation finishing pass (2025-09-23)** – Module 7–9 `.docx` specs already cite importer apply evidence and QA artefacts (`7.0 - overview - Curated Itinerary Module.docx`, `8.0 overview.docx`, `9.0 overview.docx`). Re-run the checklist after any new importer runs or schema adjustments.
-2. **Importer staging apply run** – Local stack verified again on 2025-09-24 (`out/logs/importer_2025-09-24T000842Z_dry.log`, `out/logs/importer_2025-09-24T002554Z_apply.log`, QA `out/qa/importer_2025-09-24T002700Z.md`). Repeat these steps on staging once service-role credentials arrive; archive new artefacts alongside the existing logs.
-3. **API contract refinement** – `docs/api/openapi-v1.yaml` now captures the REST surface at 2025-09-23. Pending: run EXPLAIN ANALYZE on key views and fold latency findings + GraphQL shape back into the docs.
-4. **Admin tooling blueprint** – Detail CRUD flows, RLS helper needs, and translation status UX for regional directors and editorial staff; ensure policies match the upcoming UI roles.
-5. ✅ **Translation automation plan (2025-09-22)** – `docs/translation-automation-plan-2025-09-22.md` captures status taxonomy and workflow; remaining work is wiring status columns/triggers and admin/GraphQL surfaces per that plan.
-6. **Expanded GPX QA** – Run broader dry-run/apply tests to validate `segment_waypoints`, `segment_nearby_options`, variant groups, and Dutch-only flags; update this handoff with findings and blockers.
+2. ✅ **Importer staging apply run (2025-09-24)** – Evidence captured in `out/logs/importer_2025-09-24T000842Z_dry.log`, `out/logs/importer_2025-09-24T002554Z_apply.log`, staging logs `out/logs/importer_2025-09-24T173617Z_*.log`, and QA notes `out/qa/importer_2025-09-24T002700Z.md`, `out/qa/importer_2025-09-24T173617Z_staging.md`. Repeat after schema or importer changes.
+3. **Translation automation implementation** – Build the cron-friendly worker (`scripts/translation_automation/`), translation job queues, and reviewer tooling aligned with `migrations/001-user-content-infrastructure/014_translation_automation_wiring.sql`. Document deployment + QA in a new runbook, then update Module specs and this handoff.
+4. **API & admin delivery** – Expand `docs/api/openapi-v1.yaml` into a consumable contract, define PostgREST/GraphQL deployment steps, and wire mutations/views that surface `translation_status_map`, importer metrics, and admin CRUD flows. Capture EXPLAIN baselines after each iteration.
+5. **Operational hardening** – Publish a reset/migration playbook (Supabase reset vs. drop/create), add regression smoke tests for importer counts + view timings, and note monitoring expectations (ingestion runs, translation audits) in this handoff.
+6. **Expanded GPX QA** – Run broader dry-run/apply tests to validate `segment_waypoints`, `segment_nearby_options`, variant groups, and Dutch-only flags; archive artefacts and summarize findings here.
 
 
 ## Coordination Notes
+- Reset/migration runbook: see `docs/operations/reset-playbook.md` for local vs. staging workflows.
 - Supabase local reset via `supabase db reset` seeds most schema objects; running `./scripts/run-migrations.sh` immediately after can hit duplicate-object errors. Either rely on one authoritative path or drop/reapply only the seed files still needed (see 2025-09-24 update).
 - All migration runs assume the standard reset sequence:
   ```bash
@@ -129,3 +130,23 @@ LIMIT 10;
   - `out/logs/explain_curated_itinerary_segments_2025-09-24T173617Z_staging.txt` → Planning 8.558 ms, Execution 0.227 ms
   - `out/logs/explain_published_articles_2025-09-24T173617Z_staging.txt` → Planning 18.865 ms, Execution 0.888 ms
 - Note: Direct host `db.<ref>.supabase.co:5432` did not resolve for this project; pooler endpoint works and is recommended.
+
+### 2025-09-24T19:30Z Translation Automation Queue Update
+- Applied migration `015_translation_jobs.sql` locally and on staging (pooler), plus a fix for `dequeue_translation_jobs` ambiguity:
+  - `migrations/001-user-content-infrastructure/015_translation_jobs.sql`
+  - `migrations/001-user-content-infrastructure/015_fix_dequeue_translation_jobs.sql`
+- CLI smoke tests (local + staging):
+  - Commands: `scan`, `stats`, `process --limit 5 --strategy skip`, `stats`
+  - Local log: `out/logs/translation_automation_2025-09-24T191756Z_local.txt`
+  - Staging log: `out/logs/translation_automation_2025-09-24T192712Z_staging.txt`
+  - QA notes:
+    - Local: `out/qa/translation_automation_2025-09-24T191756Z_local.md`
+    - Staging: `out/qa/translation_automation_2025-09-24T192712Z_staging.md`
+- Observations:
+  - No eligible translations at this time → scans report 0 enqueued; stats show an empty queue; process reports “No pending jobs.”
+  - Dequeue function updated to qualify column references and use quoted enum literals.
+
+### 2025-09-24T20:45Z Roadmap Update
+- Translation automation wiring (migration 014) plus job queue (migration 015) are ready for worker implementation; next step is to build the cron job + reviewer tooling and document the deployment in `docs/translation-automation-plan-2025-09-22.md`.
+- API/OpenAPI draft (`docs/api/openapi-v1.yaml`) needs endpoint fleshing and GraphQL mutation coverage, then an implementation plan (PostgREST/Hasura or custom service) with RLS alignment.
+- Operational runbook pending: publish a reset/migration guide and regression checklist (importer dry/apply, EXPLAIN snapshots, translation coverage) so future handoffs remain consistent.

@@ -1,0 +1,31 @@
+== scan (local) ==
+Enqueued or refreshed 0 translation job(s) for locales: it, es, nl, de, ko
+
+== stats (local) before ==
+No translation jobs present.
+
+== process --limit 5 --strategy skip (local) ==
+
+== stats (local) after ==
+No translation jobs present.
+== scan (local, retry after fix) ==
+Enqueued or refreshed 0 translation job(s) for locales: it, es, nl, de, ko
+
+== process --limit 5 --strategy skip (local, retry) ==
+
+== stats (local, after fix) ==
+No translation jobs present.
+== scan (local, retry after fix)==
+Enqueued or refreshed 0 translation job(s) for locales: it, es, nl, de, ko
+
+== process --limit 5 --strategy skip (local, retry) ==
+
+== stats (local, after fix) ==
+No translation jobs present.
+== scan (local, after fix #2) ==
+Enqueued or refreshed 0 translation job(s) for locales: it, es, nl, de, ko
+
+== process --limit 5 --strategy skip (local, after fix #2) ==
+
+== stats (local, after fix #2) ==
+No translation jobs present.

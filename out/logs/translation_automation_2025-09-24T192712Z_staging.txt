@@ -1,0 +1,50 @@
+== scan (staging) ==
+Enqueued or refreshed 0 translation job(s) for locales: it, es, nl, de, ko
+
+== stats (staging) before ==
+
+== apply migration 015 (staging) ==
+SET
+DO
+COMMENT
+CREATE TABLE
+COMMENT
+COMMENT
+COMMENT
+CREATE INDEX
+CREATE INDEX
+DO
+CREATE FUNCTION
+COMMENT
+CREATE FUNCTION
+COMMENT
+CREATE FUNCTION
+COMMENT
+CREATE VIEW
+GRANT
+GRANT
+GRANT
+GRANT
+GRANT
+GRANT
+
+== apply fix for dequeue (staging) ==
+SET
+CREATE FUNCTION
+
+== process --limit 5 --strategy skip (staging) ==
+No pending jobs.
+
+== stats (staging) after ==
+No translation jobs present.
+== scan (staging, after migration) ==
+Enqueued or refreshed 0 translation job(s) for locales: it, es, nl, de, ko
+
+== stats (staging, before process) ==
+No translation jobs present.
+
+== process --limit 5 --strategy skip (staging) ==
+No pending jobs.
+
+== stats (staging, after process) ==
+No translation jobs present.
