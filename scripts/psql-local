@@ -5,11 +5,19 @@
 #   scripts/psql-local -f migrations/004-waypoint-details/002_waypoint_categories_master_seed.sql
 
 PROJECT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
+# Preserve any externally provided DATABASE_URL (e.g., DATABASE_URL="$REMOTE_DATABASE_URL" scripts/psql-local ...)
+CLI_DATABASE_URL="$DATABASE_URL"
+
 # shellcheck source=/dev/null
 set -o allexport
 [ -f "$PROJECT_DIR/.env.local" ] && . "$PROJECT_DIR/.env.local"
 [ -f "$PROJECT_DIR/.env" ] && . "$PROJECT_DIR/.env"
 set +o allexport
+
+# Restore externally provided DATABASE_URL if set
+if [ -n "$CLI_DATABASE_URL" ]; then
+  DATABASE_URL="$CLI_DATABASE_URL"
+fi
 
 if [ -z "$DATABASE_URL" ]; then
   echo "Error: DATABASE_URL is not set. Create .env.local with DATABASE_URL=... or define it in .env." >&2
