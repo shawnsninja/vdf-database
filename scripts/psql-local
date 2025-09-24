@@ -10,8 +10,8 @@ CLI_DATABASE_URL="$DATABASE_URL"
 
 # shellcheck source=/dev/null
 set -o allexport
-[ -f "$PROJECT_DIR/.env.local" ] && . "$PROJECT_DIR/.env.local"
 [ -f "$PROJECT_DIR/.env" ] && . "$PROJECT_DIR/.env"
+[ -f "$PROJECT_DIR/.env.local" ] && . "$PROJECT_DIR/.env.local"
 set +o allexport
 
 # Restore externally provided DATABASE_URL if set
